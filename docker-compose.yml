@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "5050:5050"
+    environment:
+      - VITE_API_URL=http://localhost:1010
+    depends_on:
+      - backend
+    networks:
+      - budget-net
+
+  backend:
+    image: budget-tracker-backend:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - budget-net
+
+networks:
+  budget-net:
+    driver: bridge
