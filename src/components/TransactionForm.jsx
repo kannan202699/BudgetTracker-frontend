@@ -4,7 +4,14 @@ import { FiX, FiSave, FiPlusCircle, FiDollarSign, FiTag, FiCalendar, FiFileText 
 import toast from 'react-hot-toast'
 import { validateAmount } from '../utils/validators'
 
-const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 'Education', 'Salary', 'Business', 'Investment', 'Rent', 'Utilities', 'Other']
+const INCOME_CATEGORIES = [
+  'Salary', 'Business', 'Investment', 'Freelance',
+  'Rental Income', 'Dividends', 'Bonus', 'RD', 'FD', 'Other',
+]
+const EXPENSE_CATEGORIES = [
+  'Food', 'Transport', 'Shopping', 'Entertainment',
+  'Health', 'Education', 'Rent', 'Utilities', 'Other',
+]
 
 const MONTHS = [
   { value: 1, label: 'January' }, { value: 2, label: 'February' }, { value: 3, label: 'March' },
@@ -38,7 +45,7 @@ const YEARS = Array.from({ length: 6 }, (_, i) => currentYear - i)
 const emptyForm = {
   amount: '',
   type: 'INCOME',
-  category: 'Food',
+  category: INCOME_CATEGORIES[0],
   description: '',
   ...todayParts(),
 }
@@ -124,11 +131,11 @@ export default function TransactionForm({ onSubmit, onClose, editData }) {
               <label>Transaction Type</label>
               <div className="type-toggle">
                 <button type="button" className={`toggle-btn ${form.type === 'INCOME' ? 'toggle-income-active' : ''}`}
-                  onClick={() => setForm({ ...form, type: 'INCOME' })}>
+                  onClick={() => setForm({ ...form, type: 'INCOME', category: INCOME_CATEGORIES[0] })}>
                   📈 Income
                 </button>
                 <button type="button" className={`toggle-btn ${form.type === 'EXPENSE' ? 'toggle-expense-active' : ''}`}
-                  onClick={() => setForm({ ...form, type: 'EXPENSE' })}>
+                  onClick={() => setForm({ ...form, type: 'EXPENSE', category: EXPENSE_CATEGORIES[0] })}>
                   📉 Expense
                 </button>
               </div>
@@ -148,7 +155,9 @@ export default function TransactionForm({ onSubmit, onClose, editData }) {
             <div className="form-group">
               <label><FiTag size={14} /> Category</label>
               <select name="category" value={form.category} onChange={handleChange}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {(form.type === 'INCOME' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
 

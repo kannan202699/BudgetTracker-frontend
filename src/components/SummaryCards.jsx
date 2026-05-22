@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiActivity } from 'react-icons/fi'
+import { FiTrendingUp, FiTrendingDown, FiActivity } from 'react-icons/fi'
+import { MdCurrencyRupee } from 'react-icons/md'
 
 const cardConfig = [
   {
     key: 'balance',
     label: 'Total Balance',
-    icon: FiDollarSign,
+    icon: MdCurrencyRupee,
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     shadowColor: 'rgba(102, 126, 234, 0.4)',
     prefix: '₹',

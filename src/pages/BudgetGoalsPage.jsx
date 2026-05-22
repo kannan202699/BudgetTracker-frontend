@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { FiEdit2, FiCheck, FiX, FiTarget } from 'react-icons/fi'
+import { FiEdit2, FiCheck, FiX, FiTarget, FiTrendingDown } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
 import API from '../api/axiosConfig'
+
+const OVERALL_KEY = '__overall__'
 
 const EXPENSE_CATS = [
   { name: 'Food',          icon: '🍔' },
@@ -69,25 +71,30 @@ export default function BudgetGoalsPage() {
 
   const now = new Date()
   const monthSpend = {}
-  transactions
-    .filter((t) => {
-      if (!t.date) return false
-      const d = new Date(t.date + 'T00:00:00')
-      return (
-        d.getMonth() === now.getMonth() &&
-        d.getFullYear() === now.getFullYear() &&
-        String(t.type || '').toUpperCase() === 'EXPENSE'
-      )
-    })
-    .forEach((t) => {
-      monthSpend[t.category] = (monthSpend[t.category] || 0) + (parseFloat(t.amount) || 0)
-    })
+  const allMonthlyExpenses = transactions.filter((t) => {
+    if (!t.date) return false
+    const d = new Date(t.date + 'T00:00:00')
+    return (
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear() &&
+      String(t.type || '').toUpperCase() === 'EXPENSE'
+    )
+  })
+  allMonthlyExpenses.forEach((t) => {
+    monthSpend[t.category] = (monthSpend[t.category] || 0) + (parseFloat(t.amount) || 0)
+  })
+  const allMonthlySpent = allMonthlyExpenses.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0)
 
-  const totalBudget  = Object.values(goals).reduce((s, v) => s + v, 0)
-  const totalSpent   = Object.keys(goals).reduce((s, cat) => s + (monthSpend[cat] || 0), 0)
+  const totalBudget  = Object.entries(goals).filter(([k]) => k !== OVERALL_KEY).reduce((s, [, v]) => s + v, 0)
+  const totalSpent   = Object.keys(goals).filter((k) => k !== OVERALL_KEY).reduce((s, cat) => s + (monthSpend[cat] || 0), 0)
   const overallPct   = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0
   const overallColor = overallPct < 70 ? '#38ef7d' : overallPct < 100 ? '#ffd200' : '#ff6b6b'
   const monthLabel   = now.toLocaleString('en-IN', { month: 'long', year: 'numeric' })
+
+  const overallLimit    = goals[OVERALL_KEY] || 0
+  const limitPct        = overallLimit > 0 ? Math.min(100, Math.round((allMonthlySpent / overallLimit) * 100)) : 0
+  const limitBarColor   = limitPct < 70 ? '#38ef7d' : limitPct < 100 ? '#ffd200' : '#ff6b6b'
+  const limitIsOver     = overallLimit > 0 && allMonthlySpent > overallLimit
 
   return (
     <div className="app-layout">
@@ -100,7 +107,94 @@ export default function BudgetGoalsPage() {
           </div>
         </div>
 
-        {/* Overall summary bar */}
+        {/* Overall Monthly Limit */}
+        <motion.div
+          className="budget-overall-limit"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="budget-overall-left">
+            <div className="budget-overall-icon">
+              <FiTrendingDown size={20} />
+            </div>
+            <div>
+              <p className="budget-overall-title">Overall Monthly Limit</p>
+              <p className="budget-overall-sub">Total spending cap for {monthLabel}</p>
+            </div>
+            {limitIsOver && <span className="budget-over-badge">Over!</span>}
+          </div>
+
+          <div className="budget-overall-right">
+            {editing === OVERALL_KEY ? (
+              <div className="budget-edit-row">
+                <span className="budget-edit-prefix">₹</span>
+                <input
+                  type="number"
+                  className="budget-edit-input"
+                  value={editValue}
+                  autoFocus
+                  placeholder="Monthly limit"
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveGoal(OVERALL_KEY)
+                    if (e.key === 'Escape') setEditing(null)
+                  }}
+                />
+                <button className="budget-save-btn" onClick={() => saveGoal(OVERALL_KEY)} disabled={saving}>
+                  <FiCheck size={13} />
+                </button>
+                <button className="budget-discard-btn" onClick={() => setEditing(null)} disabled={saving}>
+                  <FiX size={13} />
+                </button>
+              </div>
+            ) : (
+              <div className="budget-overall-amounts">
+                <span className="budget-spent-val" style={{ color: limitIsOver ? '#ff6b6b' : 'rgba(255,255,255,0.9)' }}>
+                  ₹{allMonthlySpent.toLocaleString('en-IN')}
+                </span>
+                <span className="budget-limit-val">
+                  {overallLimit > 0 ? `/ ₹${overallLimit.toLocaleString('en-IN')}` : '— no limit set'}
+                </span>
+              </div>
+            )}
+
+            <div className="budget-overall-actions">
+              <button className="budget-edit-btn" title="Set limit"
+                onClick={() => { setEditing(OVERALL_KEY); setEditValue(overallLimit > 0 ? String(overallLimit) : '') }}>
+                <FiEdit2 size={12} />
+              </button>
+              {overallLimit > 0 && (
+                <button className="budget-clear-btn" title="Clear limit" onClick={() => clearGoal(OVERALL_KEY)}>
+                  <FiX size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {overallLimit > 0 && (
+            <div className="budget-overall-bar-wrap">
+              <div className="budget-overall-bar-track">
+                <motion.div
+                  className="budget-bar-fill"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${limitPct}%` }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  style={{ background: limitBarColor }}
+                />
+              </div>
+              <div className="budget-overall-bar-labels">
+                <span style={{ color: limitBarColor, fontSize: 12, fontWeight: 700 }}>{limitPct}%</span>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {limitIsOver
+                    ? `₹${(allMonthlySpent - overallLimit).toLocaleString('en-IN')} over limit`
+                    : `₹${(overallLimit - allMonthlySpent).toLocaleString('en-IN')} remaining`}
+                </span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Per-category summary bar */}
         {totalBudget > 0 && (
           <motion.div className="budget-overview" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="budget-ov-stats">

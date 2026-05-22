@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
@@ -9,6 +9,8 @@ export default function AnalyticsPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
+  const currentYear = new Date().getFullYear()
+  const [selectedYear, setSelectedYear] = useState(currentYear)
 
   useEffect(() => {
     API.get('/transactions/all')
@@ -17,7 +19,18 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const expenses = transactions.filter((t) => String(t.type || '').toUpperCase() === 'EXPENSE')
+  const availableYears = useMemo(() => {
+    const years = new Set(transactions.map((t) => t.date ? new Date(t.date + 'T00:00:00').getFullYear() : null).filter(Boolean))
+    years.add(currentYear)
+    return [...years].sort((a, b) => b - a)
+  }, [transactions, currentYear])
+
+  const filtered = useMemo(
+    () => transactions.filter((t) => t.date && new Date(t.date + 'T00:00:00').getFullYear() === selectedYear),
+    [transactions, selectedYear]
+  )
+
+  const expenses = filtered.filter((t) => String(t.type || '').toUpperCase() === 'EXPENSE')
   const catMap = {}
   expenses.forEach((t) => {
     catMap[t.category] = (catMap[t.category] || 0) + (parseFloat(t.amount) || 0)
@@ -25,7 +38,7 @@ export default function AnalyticsPage() {
   const topCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const totalExpense = expenses.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
 
-  const totalIncome = transactions
+  const totalIncome = filtered
     .filter((t) => String(t.type || '').toUpperCase() === 'INCOME')
     .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0)
   const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpense) / totalIncome) * 100) : 0
@@ -39,6 +52,17 @@ export default function AnalyticsPage() {
             <h1 className="page-title">Analytics</h1>
             <p className="page-subtitle">Deep insights into your financial patterns</p>
           </div>
+          <div className="header-actions">
+            <select
+              className="year-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+            >
+              {availableYears.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -51,7 +75,7 @@ export default function AnalyticsPage() {
                 <span className="chip-icon">📊</span>
                 <div>
                   <p className="chip-label">Total Transactions</p>
-                  <p className="chip-val">{transactions.length}</p>
+                  <p className="chip-val">{filtered.length}</p>
                 </div>
               </div>
               <div className="analytics-chip">
@@ -80,8 +104,8 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="charts-grid">
-              <IncomeExpenseBarChart transactions={transactions} />
-              <CategoryPieChart transactions={transactions} />
+              <IncomeExpenseBarChart transactions={filtered} />
+              <CategoryPieChart transactions={filtered} />
             </div>
 
             <div className="analytics-section">

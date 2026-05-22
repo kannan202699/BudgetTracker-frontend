@@ -68,10 +68,14 @@ API.interceptors.response.use(
         return API(original)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        // Refresh token itself is expired / invalid → force logout
-        const role = localStorage.getItem('role')
-        localStorage.clear()
-        window.location.href = role === 'ADMIN' ? '/admin/login' : '/login'
+        // Only force-logout when the server definitively rejects the refresh token (401/403).
+        // Network errors, timeouts, and 5xx are transient — don't evict the user for those.
+        const status = refreshError?.response?.status
+        if (status === 401 || status === 403) {
+          const role = localStorage.getItem('role')
+          localStorage.clear()
+          window.location.href = role === 'ADMIN' ? '/admin/login' : '/login'
+        }
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

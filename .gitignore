@@ -12,6 +12,8 @@ build/
 .env.*.local
 .env.development
 .env.production
+.env.test
+.env.staging
 
 # Logs
 *.log
@@ -30,6 +32,21 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Claude Code local settings (may contain project-specific permissions)
+.claude/
+
+# SSL/TLS certificates and private keys
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# npm/yarn auth config (may contain registry tokens)
+.npmrc
+.yarnrc
 
 # Optional
 *.tsbuildinfo

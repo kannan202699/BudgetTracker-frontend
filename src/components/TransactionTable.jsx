@@ -5,7 +5,12 @@ import {
   FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown, FiCalendar
 } from 'react-icons/fi'
 
-const CATEGORIES = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 'Education', 'Salary', 'Business', 'Investment', 'Rent', 'Utilities', 'Other']
+const CATEGORIES = [
+  'All',
+  'Food', 'Transport', 'Shopping', 'Entertainment', 'Health', 'Education', 'Rent', 'Utilities',
+  'Salary', 'Business', 'Investment', 'Freelance', 'Rental Income', 'Dividends', 'Bonus', 'RD', 'FD',
+  'Other',
+]
 const TYPES = ['All', 'INCOME', 'EXPENSE']
 const PAGE_SIZE = 8
 
