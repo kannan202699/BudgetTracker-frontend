@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editData, setEditData] = useState(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth <= 768)
   const [activeTab, setActiveTab] = useState('overview')
 
   // PDF report modal state

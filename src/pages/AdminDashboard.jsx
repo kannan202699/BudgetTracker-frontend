@@ -15,6 +15,13 @@ import { IncomeExpenseBarChart, CategoryPieChart, FinancialInsights } from '../c
 import { useAuth } from '../context/AuthContext'
 import API from '../api/axiosConfig'
 
+function fmtAmt(val) {
+  const abs = Math.abs(val)
+  if (abs >= 100000) return `₹${(abs / 100000).toFixed(1)}L`
+  if (abs >= 1000) return `₹${(abs / 1000).toFixed(1)}K`
+  return `₹${Math.round(abs).toLocaleString('en-IN')}`
+}
+
 /* ─── Stat Card ─── */
 function StatCard({ label, value, sub, icon: Icon, gradient, delay }) {
   return (
@@ -306,11 +313,11 @@ export default function AdminDashboard() {
                   icon={FiActivity} gradient="linear-gradient(135deg,#f093fb,#f5576c)" delay={0.05} />
                 <StatCard label="Total Transactions" value={loading ? '...' : allTransactions.length}
                   icon={FiList} gradient="linear-gradient(135deg,#f7971e,#ffd200)" delay={0.1} />
-                <StatCard label="Platform Income" value={loading ? '...' : `₹${(totalIncome/1000).toFixed(1)}K`}
+                <StatCard label="Platform Income" value={loading ? '...' : fmtAmt(totalIncome)}
                   icon={FiTrendingUp} gradient="linear-gradient(135deg,#11998e,#38ef7d)" delay={0.15} />
-                <StatCard label="Platform Expense" value={loading ? '...' : `₹${(totalExpense/1000).toFixed(1)}K`}
+                <StatCard label="Platform Expense" value={loading ? '...' : fmtAmt(totalExpense)}
                   icon={FiTrendingDown} gradient="linear-gradient(135deg,#eb3349,#f45c43)" delay={0.2} />
-                <StatCard label="Net Balance" value={loading ? '...' : `${netBalance>=0?'+':''}₹${(netBalance/1000).toFixed(1)}K`}
+                <StatCard label="Net Balance" value={loading ? '...' : `${netBalance>=0?'+':'-'}₹${fmtAmt(netBalance)}`}
                   icon={FiDollarSign}
                   gradient={netBalance>=0 ? "linear-gradient(135deg,#1fa2ff,#12d8fa)" : "linear-gradient(135deg,#fc4a1a,#f7b733)"}
                   delay={0.25} />
@@ -489,11 +496,11 @@ export default function AdminDashboard() {
                         </div>
                         <div className="user-full-stats">
                           <div className="user-stat"><span className="user-stat-val">{u.txnCount}</span><span className="user-stat-lbl">Transactions</span></div>
-                          <div className="user-stat"><span className="user-stat-val income-color">₹{(u.income/1000).toFixed(0)}K</span><span className="user-stat-lbl">Income</span></div>
-                          <div className="user-stat"><span className="user-stat-val expense-color">₹{(u.expense/1000).toFixed(0)}K</span><span className="user-stat-lbl">Expense</span></div>
+                          <div className="user-stat"><span className="user-stat-val income-color">{fmtAmt(u.income)}</span><span className="user-stat-lbl">Income</span></div>
+                          <div className="user-stat"><span className="user-stat-val expense-color">{fmtAmt(u.expense)}</span><span className="user-stat-lbl">Expense</span></div>
                           <div className="user-stat">
                             <span className="user-stat-val" style={{ color: u.balance>=0?'#38ef7d':'#eb3349' }}>
-                              {u.balance>=0?'+':''}₹{(Math.abs(u.balance)/1000).toFixed(0)}K
+                              {u.balance>=0?'+':'-'}{fmtAmt(u.balance)}
                             </span>
                             <span className="user-stat-lbl">Balance</span>
                           </div>

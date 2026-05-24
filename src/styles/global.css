@@ -598,6 +598,7 @@ a { text-decoration: none; color: inherit; }
   position: fixed;
   top: 0; left: 0;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   z-index: 100;
@@ -715,12 +716,14 @@ a { text-decoration: none; color: inherit; }
 /* Nav items */
 .sidebar-nav {
   flex: 1;
+  min-height: 0;
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 .nav-section-label {
   font-size: 10px;
@@ -789,7 +792,9 @@ a { text-decoration: none; color: inherit; }
 /* Sidebar footer */
 .sidebar-footer {
   padding: 12px 8px 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
   border-top: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
 }
 .logout-btn {
   display: flex;

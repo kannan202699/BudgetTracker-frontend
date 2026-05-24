@@ -49,6 +49,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
 
   useEffect(() => {
+    const mobile = window.innerWidth <= 768
+    setIsMobile(true)
+    if (mobile) setCollapsed(true)
+
     const handler = () => {
       const mobile = window.innerWidth <= 768
       setIsMobile(mobile)
@@ -114,7 +118,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             : { x: 0, width: collapsed ? 72 : 260 }
         }
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        style={isMobile ? { position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 600 } : undefined}
+        style={isMobile ? { position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 600 } : undefined}
       >
         {/* Logo */}
         <div className="sidebar-logo">
